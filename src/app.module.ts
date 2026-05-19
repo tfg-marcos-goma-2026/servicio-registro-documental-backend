@@ -13,7 +13,8 @@ import { VaultModule } from './vault/vault.module';
     }),
     DocumentsModule,
     BlockchainModule,
-    VaultModule],
+    VaultModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

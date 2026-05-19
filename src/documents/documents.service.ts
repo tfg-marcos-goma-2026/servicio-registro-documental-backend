@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { BlockchainService } from '../blockchain/blockchain.service';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class DocumentsService {
     try {
       console.log(`[Backend] Registrando en blockchain: ${hash}`);
       const txHash = await this.blockchainService.registrarHash(hash);
-      
+
       return {
         success: true,
         hash: hash,
@@ -17,7 +17,9 @@ export class DocumentsService {
       };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Error al registrar el documento en la blockchain');
+      throw new InternalServerErrorException(
+        'Error al registrar el documento en la blockchain',
+      );
     }
   }
 
@@ -44,7 +46,9 @@ export class DocumentsService {
       };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Error al consultar el contrato inteligente');
+      throw new InternalServerErrorException(
+        'Error al consultar el contrato inteligente',
+      );
     }
   }
 }
