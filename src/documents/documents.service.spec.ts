@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getQueueToken } from '@nestjs/bullmq';
 import { DocumentsService } from './documents.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { InternalServerErrorException } from '@nestjs/common';
@@ -7,8 +8,11 @@ describe('DocumentsService', () => {
   let service: DocumentsService;
 
   const mockBlockchainService = {
-    registrarHash: jest.fn(),
     verificarHash: jest.fn(),
+  };
+
+  const mockQueue = {
+    add: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -19,23 +23,31 @@ describe('DocumentsService', () => {
           provide: BlockchainService,
           useValue: mockBlockchainService,
         },
+        {
+          provide: getQueueToken('blockchain-queue'),
+          useValue: mockQueue,
+        },
       ],
     }).compile();
 
     service = module.get<DocumentsService>(DocumentsService);
   });
 
-  it('debe registrar y devolver la transacción', async () => {
-    mockBlockchainService.registrarHash.mockResolvedValue('0xTX');
+  it('debe encolar el registro y devolver el job Id', async () => {
+    mockQueue.add.mockResolvedValue({ id: 'job-1' });
     const result = await service.registerDocument('hash123');
+
+    expect(mockQueue.add).toHaveBeenCalledWith(
+      'register-document',
+      { hash: 'hash123' },
+      expect.any(Object),
+    );
     expect(result.success).toBe(true);
-    expect(result.transactionHash).toBe('0xTX');
+    expect(result.jobId).toBe('job-1');
   });
 
-  it('debe devolver error si falla el registro', async () => {
-    mockBlockchainService.registrarHash.mockRejectedValue(
-      new Error('Fallo de red'),
-    );
+  it('debe devolver error si falla el encolado', async () => {
+    mockQueue.add.mockRejectedValue(new Error('Redis down'));
     await expect(service.registerDocument('hash123')).rejects.toThrow(
       InternalServerErrorException,
     );

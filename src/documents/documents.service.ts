@@ -1,24 +1,42 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { BlockchainService } from '../blockchain/blockchain.service';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private blockchainService: BlockchainService) {}
+  constructor(
+    @InjectQueue('blockchain-queue') private blockchainQueue: Queue,
+    private blockchainService: BlockchainService,
+  ) {}
 
   async registerDocument(hash: string) {
     try {
-      console.log(`[Backend] Registrando en blockchain: ${hash}`);
-      const txHash = await this.blockchainService.registrarHash(hash);
+      console.log(`[Backend] Encolando registro en blockchain para: ${hash}`);
+
+      const job = await this.blockchainQueue.add(
+        'register-document',
+        { hash },
+        {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+        },
+      );
 
       return {
         success: true,
+        status: 'pending',
+        message: 'Documento encolado para registro en blockchain',
         hash: hash,
-        transactionHash: txHash,
+        jobId: job.id,
       };
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'Error al registrar el documento en la blockchain',
+        'Error al encolar el documento para su registro',
       );
     }
   }

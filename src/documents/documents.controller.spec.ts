@@ -8,8 +8,10 @@ describe('DocumentsController', () => {
   const mockDocumentsService = {
     registerDocument: jest.fn().mockResolvedValue({
       success: true,
+      status: 'pending',
+      message: 'Documento encolado para registro en blockchain',
       hash: '0xabc123',
-      transactionHash: '0x123',
+      jobId: '1',
     }),
     verifyDocument: jest
       .fn()
@@ -36,8 +38,10 @@ describe('DocumentsController', () => {
     expect(mockDocumentsService.registerDocument).toHaveBeenCalledWith(hash);
     expect(result).toEqual({
       success: true,
+      status: 'pending',
+      message: 'Documento encolado para registro en blockchain',
       hash: '0xabc123',
-      transactionHash: '0x123',
+      jobId: '1',
     });
   });
 
