@@ -1,98 +1,78 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Servicio de Registro Documental (Backend)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API RESTful diseñada para el registro inmutable y la verificación de huellas documentales (hashes) en redes blockchain compatibles con EVM (Ethereum Virtual Machine).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Este microservicio está diseñado para entornos de alta concurrencia. Implementa un sistema de colas distribuidas (BullMQ), exclusión mutua asíncrona (Redlock) y un gestor de secretos seguro (HashiCorp Vault) para la firma de transacciones sin exponer claves privadas.
 
-## Description
+## Puesta en Marcha
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Antes de ejecutar los contenedores, es necesario configurar el entorno local.
 
-## Project setup
+### 1. Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto basándote en el archivo `.env.example` proporcionado. Las claves indispensables para el arranque son:
+
+- `BLOCKCHAIN_RPC_URL`: Endpoint del nodo blockchain (ej. Hardhat para desarrollo local o Alastria en producción).
+- `REGISTRO_CONTRATO_ADDRESS`: Dirección del Smart Contract tras su despliegue.
+- `VAULT_ENDPOINT` y `VAULT_TOKEN`: Credenciales de acceso al gestor de secretos.
+- `REDIS_HOST` y `REDIS_PORT`: Infraestructura para la cola de trabajos y los bloqueos.
+
+### 2. Ejecución de la Infraestructura
+
+El sistema depende de servicios externos (Redis, Vault, Nodo RPC). Para levantar el backend y sus dependencias mediante Docker:
 
 ```bash
-$ npm install
+# Levantar toda la infraestructura en segundo plano
+$ docker compose up -d
+
+# Visualizar los logs del backend en tiempo real
+$ docker logs -f tfg-backend
 ```
 
-## Compile and run the project
+Una vez arrancado, la documentación interactiva de la API (Swagger) estará disponible en: http://localhost:3000/api/docs
+
+## Estrategia de Pruebas
+
+El proyecto cuenta con dos suites de pruebas diferenciadas: Unitarias y de Carga.
+
+### Pruebas Unitarias y Cobertura
+
+Evalúan la lógica de negocio, la inyección de dependencias y el aislamiento de fallos utilizando estructuras simuladas (Mocks) para la infraestructura de Vault y la Blockchain.
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
+# Ejecutar suite de pruebas unitarias
 $ npm run test
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
+# Ejecutar pruebas y generar reporte de cobertura
 $ npm run test:cov
 ```
 
-## Deployment
+### Pruebas de Rendimiento y Carga (K6 + Docker)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Diseñadas para evaluar los mecanismos de tolerancia a fallos y la política de desconexión de carga bajo condiciones de estrés. Se ejecutan en contenedores aislados orquestados por el archivo `docker-compose.load.yml`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Este archivo se encarga también de configurar la variable `BLOCKCHAIN_MOCK_MODE=true` en el archivo `.env` antes de lanzarlas, para evitar saturar la red blockchain real y medir exclusivamente el rendimiento y límites del servicio. 
+
+**Carga Sostenida**
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+$ npm run test:load
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Propósito: Evalúa la estabilidad del consumo de memoria y la gestión interna de la cola bajo un tráfico constante y moderado durante un periodo prolongado. Nos proporciona una estimación de los valores óptimos de QUEUE_HIGH_LOAD_LIMIT y QUEUE_EXTREME_LOAD_LIMIT según los tiempos de respuesta configurados para los mocks de blockchain.
 
-## Resources
+**Carga en Rampa (Escalado Progresivo)**
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+$ npm run test:load-rampa
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Propósito: Incrementa el número de usuarios concurrentes de forma progresiva. Sirve para identificar el punto exacto de saturación en el cual el sistema activa el encolado en modo diferido o empieza a rechazar peticiones con código HTTP 503.
 
-## Support
+**Carga Pico (Estrés por Aluvión)**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+$ npm run test:load-pico
+```
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Propósito: Simula una entrada masiva y repentina de peticiones en un intervalo de pocos segundos. Verifica la robustez de la exclusión mutua con Redlock y asegura la correcta asignación secuencial de Nonces bajo un nivel de concurrencia crítico.
