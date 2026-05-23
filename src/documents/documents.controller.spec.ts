@@ -34,7 +34,9 @@ describe('DocumentsController', () => {
 
   it('debe registrar un documento correctamente', async () => {
     const hash = '0xabc123';
-    const result = await controller.registerDocument(hash);
+    const dto = { hash };
+    const result = await controller.registerDocument(dto);
+
     expect(mockDocumentsService.registerDocument).toHaveBeenCalledWith(hash);
     expect(result).toEqual({
       success: true,
@@ -47,7 +49,9 @@ describe('DocumentsController', () => {
 
   it('debe verificar un documento correctamente', async () => {
     const hash = '0xabc123';
-    const result = await controller.verifyDocument(hash);
+    const dto = { hash };
+    const result = await controller.verifyDocument(dto);
+
     expect(mockDocumentsService.verifyDocument).toHaveBeenCalledWith(hash);
     expect(result).toEqual({
       success: true,
