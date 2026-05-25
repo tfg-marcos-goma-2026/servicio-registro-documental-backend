@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:load": "K6_SCRIPT=carga-sostenida.js docker compose -f docker-compose.load.yml up --build --abort-on-container-exit --exit-code-from k6; EXIT=$?; docker compose -f docker-compose.load.yml down -v --remove-orphans; exit $EXIT",
+    "test:load-sostenida": "K6_SCRIPT=carga-sostenida.js docker compose -f docker-compose.load.yml up --build --abort-on-container-exit --exit-code-from k6; EXIT=$?; docker compose -f docker-compose.load.yml down -v --remove-orphans; exit $EXIT",
     "test:load-rampa": "K6_SCRIPT=carga-rampa.js    docker compose -f docker-compose.load.yml up --build --abort-on-container-exit --exit-code-from k6; EXIT=$?; docker compose -f docker-compose.load.yml down -v --remove-orphans; exit $EXIT",
     "test:load-pico": "K6_SCRIPT=carga-pico.js     docker compose -f docker-compose.load.yml up --build --abort-on-container-exit --exit-code-from k6; EXIT=$?; docker compose -f docker-compose.load.yml down -v --remove-orphans; exit $EXIT"
   },
