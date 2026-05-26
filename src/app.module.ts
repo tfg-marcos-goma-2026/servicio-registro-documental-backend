@@ -1,9 +1,10 @@
 /**
  * @file app.module.ts
  * @module Root
- * @description Módulo raíz que define la configuración global, las políticas de 
- * seguridad, el registro de colas y la orquestación 
- * de los módulos funcionales del sistema.
+ * @description Módulo raíz que define la configuración global, las políticas
+ * de seguridad y el registro de la cola BullMQ compartida. La orquestación
+ * interna del bounded context de documentos queda encapsulada en
+ * DocumentsModule.register().
  */
 
 import { Module } from '@nestjs/common';
@@ -12,18 +13,15 @@ import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { DocumentsModule } from './documents/documents.module';
-import { BlockchainModule } from './blockchain/blockchain.module';
-import { VaultModule } from './vault/vault.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
-      { name: 'short', ttl: 1000, limit: 5 },
-      { name: 'long', ttl: 60000, limit: 100 },
+      { name: 'short', ttl: 1000, limit: 20 },
+      { name: 'long', ttl: 60000, limit: 200 },
     ]),
-    BlockchainModule.register(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -34,8 +32,7 @@ import { HealthModule } from './health/health.module';
       }),
       inject: [ConfigService],
     }),
-    DocumentsModule,
-    VaultModule,
+    DocumentsModule.register(),
     HealthModule,
   ],
   providers: [

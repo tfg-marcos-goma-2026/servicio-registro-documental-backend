@@ -2,13 +2,17 @@
  * @file health.controller.ts
  * @module health
  * @description Controlador de health checks. Expone el endpoint GET /health,
- *   que comprueba activamente el estado de las dependencias críticas del
- *   servicio: Redis (necesario para la cola BullMQ y el lock distribuido
- *   Redlock) y Vault (necesario para obtener la clave privada del firmante).
+ *   que comprueba activamente el estado de las dependencias de infraestructura
+ *   compartidas por el sistema: Redis (necesario para la cola BullMQ y el
+ *   mutex distribuido Redlock) y Vault (necesario para que el adaptador de
+ *   blockchain obtenga la clave privada del firmante).
  *
- *   Un código de respuesta 200 indica que todas las dependencias están
- *   operativas. Cualquier fallo devuelve 503, lo que permite a Docker Swarm
- *   o Kubernetes decidir si reiniciar el contenedor automáticamente.
+ *   Este módulo es transversal y no pertenece a ningún contexto.
+ *   Comprueba dependencias de infraestructura, no lógica de negocio.
+ *
+ *   Un código 200 indica que todas las dependencias están operativas.
+ *   Cualquier fallo devuelve 503, lo que permite a Docker Swarm o Kubernetes
+ *   decidir si reiniciar el contenedor automáticamente.
  */
 
 import { Controller, Get } from '@nestjs/common';
@@ -33,22 +37,22 @@ export class HealthController {
   ) {}
 
   /**
-   * Ejecuta los health checks de todas las dependencias críticas en paralelo
-   * y devuelve un resumen del estado de cada una.
+   * Ejecuta los health checks de las dependencias de infraestructura en
+   * paralelo y devuelve un resumen del estado de cada una.
    *
    * Comprobaciones incluidas:
-   *   - **redis**  Ping TCP al servidor Redis mediante MicroserviceHealthIndicator.
-   *   - **vault**  Petición HTTP al endpoint estándar /v1/sys/health de Vault,
-   *     que devuelve 200 únicamente cuando el servidor está inicializado,
-   *     desbloqueado y activo.
+   *   - **redis**  Ping TCP al servidor Redis.
+   *   - **vault**  Petición HTTP al endpoint /v1/sys/health de HashiCorp Vault,
+   *     que devuelve 200 solo cuando está inicializado, desbloqueado y activo.
    *
    * @returns Objeto HealthCheckResult con el estado global y el detalle de
-   *   cada indicador. Terminus se encarga de fijar el código HTTP (200 / 503).
+   *   cada indicador. Terminus fija el código HTTP (200 / 503).
    */
   @Get()
   @HealthCheck()
   @ApiOperation({
-    summary: 'Comprueba el estado del servicio y sus dependencias',
+    summary:
+      'Comprueba el estado del servicio y sus dependencias de infraestructura',
   })
   check() {
     return this.health.check([

@@ -14,17 +14,19 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors();
-  
+
   // Prefijo global para versionado de API, excluyendo la ruta de salud
   app.setGlobalPrefix('api/v1', { exclude: ['health'] });
-  
+
   // Validación automática de DTOs mediante class-validator
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // Configuración de la especificación OpenAPI (Swagger)
   const config = new DocumentBuilder()
     .setTitle('Servicio de Registro Documental')
-    .setDescription('API para registro y verificación de documentos en blockchain')
+    .setDescription(
+      'API para registro y verificación de documentos en blockchain',
+    )
     .setVersion('1.0')
     .build();
 
