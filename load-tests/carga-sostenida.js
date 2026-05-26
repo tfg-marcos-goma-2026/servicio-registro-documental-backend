@@ -35,6 +35,7 @@ export default function () {
 export function handleSummary(data) {
   return {
     stdout: textSummary(data, { indent: ' ', enableColors: true }),
-    '/reports/reporte-sostenida.html': htmlReport(data, { title: 'Test de Carga: Sostenida' })
+    '/reports/reporte-sostenida.html': htmlReport(data, { title: 'Test de Carga: Sostenida' }),
+    '/reports/resumen-sostenida.json': JSON.stringify(data, null, 2),
   };
 }

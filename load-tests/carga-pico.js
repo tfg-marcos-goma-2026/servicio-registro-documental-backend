@@ -46,6 +46,7 @@ export default function () {
 export function handleSummary(data) {
   return {
     stdout: textSummary(data, { indent: ' ', enableColors: true }),
-    '/reports/reporte-pico.html': htmlReport(data, { title: 'Test de Carga: Pico Súbito' })
+    '/reports/reporte-pico.html': htmlReport(data, { title: 'Test de Carga: Pico Súbito' }),
+    '/reports/resumen-pico.json': JSON.stringify(data, null, 2),
   };
 }

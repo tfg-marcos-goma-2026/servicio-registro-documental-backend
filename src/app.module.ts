@@ -1,12 +1,3 @@
-/**
- * @file app.module.ts
- * @module Root
- * @description Módulo raíz que define la configuración global, las políticas
- * de seguridad y el registro de la cola BullMQ compartida. La orquestación
- * interna del bounded context de documentos queda encapsulada en
- * DocumentsModule.register().
- */
-
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
@@ -18,10 +9,22 @@ import { HealthModule } from './health/health.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      { name: 'short', ttl: 1000, limit: 20 },
-      { name: 'long', ttl: 60000, limit: 200 },
-    ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ([
+        {
+          name: 'short',
+          ttl: 1000,
+          limit: configService.get<number>('THROTTLE_SHORT_LIMIT', 20),
+        },
+        {
+          name: 'long',
+          ttl: 60000,
+          limit: configService.get<number>('THROTTLE_LONG_LIMIT', 200),
+        },
+      ]),
+      inject: [ConfigService],
+    }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
