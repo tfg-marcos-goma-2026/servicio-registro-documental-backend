@@ -1,10 +1,33 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: tfg-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx_certs:/etc/nginx/certs
+    depends_on:
+      - backend
+    entrypoint:
+      - sh
+      - -c
+      - |
+        apk add --no-cache openssl
+        if [ ! -f /etc/nginx/certs/server.crt ]; then
+          openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /etc/nginx/certs/server.key \
+            -out    /etc/nginx/certs/server.crt \
+            -subj   '/CN=localhost'
+        fi
+        exec nginx -g 'daemon off;'
+
   redis:
     image: redis:alpine
     container_name: tfg-redis-prod
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
 
@@ -13,8 +36,8 @@ services:
     container_name: tfg-vault-prod
     restart: unless-stopped
     ports:
-      - "8200:8200"
-    entrypoint: ["vault"]             
+      - "127.0.0.1:8200:8200"
+    entrypoint: ["vault"]
     command: server -dev
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=tfg-dev-root-token
@@ -27,8 +50,6 @@ services:
     build: .
     container_name: tfg-backend-prod
     restart: unless-stopped
-    ports:
-      - "${PORT}:${PORT}"
     depends_on:
       - redis
       - vault
@@ -45,3 +66,4 @@ services:
 volumes:
   redis_data:
   vault_data:
+  nginx_certs:
