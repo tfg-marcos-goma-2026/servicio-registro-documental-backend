@@ -11,7 +11,7 @@ import { HealthModule } from './health/health.module';
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ([
+      useFactory: (configService: ConfigService) => [
         {
           name: 'short',
           ttl: 1000,
@@ -22,7 +22,7 @@ import { HealthModule } from './health/health.module';
           ttl: 60000,
           limit: configService.get<number>('THROTTLE_LONG_LIMIT', 200),
         },
-      ]),
+      ],
       inject: [ConfigService],
     }),
     BullModule.forRootAsync({
