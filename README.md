@@ -23,15 +23,17 @@ Toda la comunicación con el backend pasa a través de un proxy inverso Nginx co
   cd nginx
   mkcert -cert-file server.crt -key-file server.key localhost
   cd ..
+  ```
 
 ### 2. Despliegue del Smart Contract
 El código de la infraestructura blockchain se encuentra integrado en el directorio hardhat/. Antes de configurar el entorno del servidor, es necesario desplegar el contrato inteligente para obtener su dirección en la red:
 
-Bash
-cd hardhat
-npm install
-npx hardhat run scripts/deploy.ts --network <tu_red> 
-cd ..
+  ```bash
+  cd hardhat
+  npm install
+  npx hardhat run scripts/deploy.ts --network <tu_red> 
+  cd ..
+  ```
 
 ### 3. Variables de Entorno
 
