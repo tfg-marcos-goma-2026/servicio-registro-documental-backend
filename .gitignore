@@ -66,4 +66,5 @@ hardhat/typechain-types/
 .env
 *.env
 
-hardhat/ignition/deployments/
+hardhat/ignition/deployments/nginx/server.crt
+nginx/server.key
