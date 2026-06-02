@@ -1,0 +1,9 @@
+{
+  "name": "hardhat-local",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@types/node": "^20.19.41",
+    "hardhat": "^2.28.6"
+  }
+}

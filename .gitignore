@@ -57,3 +57,13 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /load-tests/reports
+
+hardhat/artifacts/
+hardhat/cache/
+hardhat/node_modules/
+hardhat/typechain-types/
+
+.env
+*.env
+
+hardhat/ignition/deployments/
