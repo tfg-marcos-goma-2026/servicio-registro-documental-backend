@@ -68,3 +68,4 @@ hardhat/typechain-types/
 
 hardhat/ignition/deployments/nginx/server.crt
 nginx/server.key
+nginx/server.crt
