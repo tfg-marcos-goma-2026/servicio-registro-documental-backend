@@ -31,9 +31,11 @@ El código de la infraestructura blockchain se encuentra integrado en el directo
   ```bash
   cd hardhat
   npm install
-  npx hardhat run scripts/deploy.ts --network <tu_red> 
+  PRIVATE_KEY=<CLAVE_PRIVADA> npx hardhat run scripts/deploy.ts --network <tu_red>
   cd ..
   ```
+
+**Nota:** la dirección hexadecimal devuelta por el script deberá copiarse en `REGISTRO_CONTRATO_ADDRESS` del `.env` del backend.
 
 ### 3. Variables de Entorno
 
