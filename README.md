@@ -8,7 +8,32 @@ Este microservicio está diseñado para entornos de alta concurrencia. Implement
 
 Antes de ejecutar los contenedores, es necesario configurar el entorno local.
 
-### 1. Variables de Entorno
+### 1. Configuración de Certificados SSL (Nginx)
+
+Toda la comunicación con el backend pasa a través de un proxy inverso Nginx configurado para requerir HTTPS (puerto 443).
+
+* **En Producción (Entorno Real):** Copia los certificados válidos de tu Entidad Certificadora institucional en la carpeta `nginx/` asegurándote de que se llamen `server.crt` y `server.key`.
+* **En Desarrollo / Simulación Local:** Para evitar bloqueos CORS o advertencias de seguridad en el navegador, genera certificados locales confiables utilizando `mkcert`:
+
+  ```bash
+  # Instalar la CA local en el sistema/navegador
+  mkcert -install
+  
+  # Generar los certificados dentro de la carpeta nginx
+  cd nginx
+  mkcert -cert-file server.crt -key-file server.key localhost
+  cd ..
+
+### 2. Despliegue del Smart Contract
+El código de la infraestructura blockchain se encuentra integrado en el directorio hardhat/. Antes de configurar el entorno del servidor, es necesario desplegar el contrato inteligente para obtener su dirección en la red:
+
+Bash
+cd hardhat
+npm install
+npx hardhat run scripts/deploy.ts --network <tu_red> 
+cd ..
+
+### 3. Variables de Entorno
 
 Crea un archivo `.env` en la raíz del proyecto basándote en el archivo `.env.example` proporcionado. Las claves indispensables para el arranque son:
 
@@ -17,7 +42,7 @@ Crea un archivo `.env` en la raíz del proyecto basándote en el archivo `.env.e
 - `VAULT_ENDPOINT` y `VAULT_TOKEN`: Credenciales de acceso al gestor de secretos.
 - `REDIS_HOST` y `REDIS_PORT`: Infraestructura para la cola de trabajos y los bloqueos.
 
-### 2. Ejecución de la Infraestructura
+### 4. Ejecución de la Infraestructura
 
 El sistema depende de servicios externos (Redis, Vault, Nodo RPC). Para levantar el backend y sus dependencias mediante Docker:
 
@@ -26,12 +51,12 @@ El sistema depende de servicios externos (Redis, Vault, Nodo RPC). Para levantar
 $ docker compose up -d
 
 # Visualizar los logs del backend en tiempo real
-$ docker logs -f tfg-backend
+$ docker logs -f tfg-backend-prod
 ```
 
 El backend arranca correctamente sin necesidad de que Vault contenga la clave privada. Dicha clave solo se requiere en el momento en que se procesa una solicitud de registro; si no está inyectada en ese momento, la operación fallará con error interno.
 
-### 3. Inyección de la Clave Privada en Vault
+### 5. Inyección de la Clave Privada en Vault
 
 Una vez levantada la infraestructura, es necesario almacenar en Vault la clave privada de la cuenta firmante. Esta clave es la que autoriza las transacciones en la red blockchain.
 
